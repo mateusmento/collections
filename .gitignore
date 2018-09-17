@@ -1,0 +1,7 @@
+obj/
+lib/
+bin/
+*.exe
+*.out
+*.o
+*.a
