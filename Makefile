@@ -1,29 +1,56 @@
 CC = gcc
-CFLAGS = -Wall -Iinclude 
-SRC = $(wildcard src/*.c)
+
+INC_PATH = -Iinclude
+LIB_PATH = -Llib
+
+CFLAGS_COMMON = -Wall -std=c99
+CFLAGS_DEBUG =  $(CFLAGS_COMMON) -g -O0
+CFLAGS_RELEASE = $(CFLAGS_COMMON) -O2
+CFLAGS = $(CFLAGS_DEBUG) $(INC_PATH) $(LIB_PATH)
+
+
+FOLDERS = obj lib bin
+
+SRC = $(wildcard src/*.c) $(wildcard src/**/*.c)
 OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
+LIB = -lcoll
+
+TEST_SRC = $(wildcard test/*.c)
+TEST_OUT = $(patsubst test/%.c, bin/%.out, $(TEST_SRC))
+
 OUT_LIB = lib/libcoll.a
-OUT_EXE = main.out
-TEST_OUT_EXE = list.out
 
+bin/%.out: test/%.c 	
+	$(CC) $(CFLAGS) $< -o $@ $(LIB)
 
-obj/%.o: src/%.c
-	$(CC) $(CFLAGS) -g -c $< -o $@
+$(TEST_OUT): $(OUT_LIB)
 
 $(OUT_LIB): $(OBJ)
-	ar cr $(OUT_LIB) $(OBJ)
+	$(AR) cr $(OUT_LIB) $(OBJ)
+
+obj/%.o: src/%.c $(FOLDERS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj:
+	mkdir obj
+lib:
+	mkdir lib
+bin:
+	mkdir bin
+
+
+.PHONY: init clean install all
+
+init: $(FOLDERS)
 
 install: $(OUT_LIB)
-	
-test: $(OUT_LIB)
-	$(CC) $(CFLAGS) -Llib -g test/main.c -lcoll -o $(OUT_EXE)
-	$(CC) $(CFLAGS) -Llib -g test/list.test.c -lcoll -o $(TEST_OUT_EXE)
 
+test: $(TEST_OUT)
 
-
-.PHONY: clean
 clean:
-	rm $(TEST_OUT_EXE)
-	rm $(OUT_EXE)
-	rm $(OUT_LIB)
-	rm obj/*.o
+	rm -rf obj
+	rm -rf obj/test
+	rm -rf lib
+	rm -rf bin
+	rm -rf bin/test
+

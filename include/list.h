@@ -1,40 +1,36 @@
 #ifndef LIST_H
 #define LIST_H
 
-#ifndef NULL
-#define NULL ((void*) 0)
-#endif
+#include <stddef.h>
+#include <stdbool.h>
+
+#include "node.h"
 
 
-typedef struct Node Node;
+
 typedef struct List List;
-
-struct Node
-{
-	Node* prev;
-	Node* next;
-};
 
 struct List
 {
 	Node* begin;
 	Node* end;
-	unsigned long count;
+	size_t count;
+	size_t userdatasize;
 };
 
-Node* node_init(Node* this);
 
-List* list_init(List* this);
+List* list_init(List* this, size_t userdatasize);
+List* list_new(size_t userdatasize);
+
 Node* list_begin(List* this);
 Node* list_end(List* this);
 
 Node* list_push(List* this, Node* node);
 
+typedef void (*ListSelectFn)(void*, void*);
+typedef bool (*ListFilterFn)(void*);
 
-#define cast(type, value) ((type) (value))
-#define node_newarr(type, size) cast(Node*, calloc(sizeof(Node) + sizeof(type), size))
-#define node_new(type) node_newarr(type, 1)
-#define list_new() cast(List*, calloc(sizeof(List), 1))
-
+List* list_select(List* this, size_t sizeToAllocate, ListSelectFn fn);
+List* list_filter(List* this, ListFilterFn fn);
 
 #endif
