@@ -22,9 +22,6 @@ struct List
 List* list_init(List* this, size_t userdatasize);
 List* list_new(size_t userdatasize);
 
-Node* list_begin(List* this);
-Node* list_end(List* this);
-
 Node* list_push(List* this, Node* node);
 
 typedef void (*ListSelectFn)(void*, void*);

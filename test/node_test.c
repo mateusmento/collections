@@ -1,4 +1,4 @@
-#include <node.h>
+#include <collections.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -6,16 +6,14 @@
 
 int main()
 {
-	Node* node = NULL;
-	Node node_value;
-
 	/// test for node_new //////////////////////////
 	Node* node = node_new(int);
 	assert(node->next == NULL);
 	assert(node->prev == NULL);
 
 	///	test for node_init /////////////////////////
-	node_init(&node);
+	Node node_value;
+	node_init(&node_value);
 	assert(node->next == NULL);
 	assert(node->prev == NULL);
 
@@ -53,7 +51,7 @@ int main()
 	assert(node2->prev == node4);
 	assert(node2->next == NULL);
 
-	/// test for node_adjacents //////////////////
+	/// test for node_linkadjacents //////////////
 	node_linkadjacents(node4);
 
 	assert(node4->next == node2);

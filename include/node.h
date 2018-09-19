@@ -24,6 +24,6 @@ void node_linkbetween(Node* this, Node* prev, Node* next);
 void node_attach(Node* this, Node* prev, Node* next);
 void node_extract(Node* this);
 
-#define node_getuserdata(this) cast(Node*, this + 1)
+#define node_getuserdata(this) cast(void*, cast(Node*, this + 1))
 
 #endif

@@ -1,56 +1,43 @@
-#include <list.h>
+#include <collections.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <colldef.h>
 
-
-#define node_new(type) node_new(sizeof(type))
-#define list_new(type) list_new(sizeof(type))
-#define list_select(this, type, fn) list_select(this, sizeof(type), cast(ListSelectFn, fn))
-#define list_filter(this, fn) list_filter(this, cast(ListFilterFn, fn))
-
-
-#define getdata(x) cast(void*, cast(Node*, x) + 1)
-#define touser(x) cast(User*, getdata(x))
-#define tocredentials(x) cast(UserCredentials*, getdata(x))
-
-typedef struct {
+typedef struct
+{
 	const char* username;
-	const char* password;	
-} UserCredentials;
+	const char* password;
+} UserCredential;
 
-typedef struct {
+typedef struct
+{
 	size_t id;
-	UserCredentials credentials;
-	const char* email;
+	UserCredential credential;
 } User;
 
-void fill_list(List* list, int length, const char* arr[])
+
+void create_users(List* list, char** arr, size_t length)
 {
-	for (int i = 0; i < length; i+=2)
+	for (int i = 0; i < length; i += 2)
 	{
 		Node* node = node_new(User);
-		User* user = touser(node);
-		user->id = i/2;
-		user->credentials.username = arr[i + 1];
-		user->credentials.password = arr[i + 2];
 		list_push(list, node);
+		
+		User* user = node_getuserdata(node);
+		user->credential.username = arr[i];
+		user->credential.password = arr[i + 1];
+		user->id = i/2 + 1;
 	}
 }
 
-void print_list(List* list)
+void print_credentials(List* list)
 {
-	for(Node* node = list->begin; node != NULL; node = node->next)
+	for (Node* node = list->begin; node != NULL; node = node->next)
 	{
-		UserCredentials* user = tocredentials(node);
-		printf("%s %s\n", user->username, user->password);
+		UserCredential* credential = node_getuserdata(node);
+		const char* username = credential->username;
+		const char* password = credential->password;
+		
+		printf("%s %s\n", username, password);
 	}
-}
-
-void select_fn(User* srcData, UserCredentials* destData)
-{
-	*destData = srcData->credentials;
 }
 
 bool filter_fn(User* user)
@@ -58,19 +45,21 @@ bool filter_fn(User* user)
 	return user->id % 2 == 1;
 }
 
-int main(int argc, const char** argv)
+void select_fn(User* user, UserCredential* credential)
 {
-	size_t length = argc % 2 != 1 ? argc : argc - 1;
-	const char** arr = argv;
+	*credential = user->credential;
+}
 
-	List* user_list = list_new(User);
+int main(int argc, char** argv)
+{
+	char** arr = argv + 1;
+	size_t length = argc - 1;
 
-	fill_list(user_list, length, arr);
-	
-	List* user_list2 = list_filter(user_list, filter_fn);
-	List* id_list = list_select(user_list2, sizeof(UserCredentials), (ListSelectFn)select_fn);
-	
-	print_list(id_list);
+	List* users = list_new(User);
+	create_users(users, arr, length);
+	List* users_odd = list_filter(users, filter_fn);
+	List* credentials = list_select(users_odd, UserCredential, select_fn);
+	print_credentials(credentials);
 
 	return 0;
 }

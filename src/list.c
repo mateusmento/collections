@@ -19,16 +19,6 @@ List* list_new(size_t userdatasize)
 	return list_init(this, userdatasize);
 }
 
-Node* list_begin(List* this)
-{
-	return this->begin;
-}
-
-Node* list_end(List* this)
-{
-	return this->end;
-}
-
 Node* list_push(List* this, Node* node)
 {
 	if (this == NULL) return NULL;
@@ -38,25 +28,25 @@ Node* list_push(List* this, Node* node)
 	if (node == NULL) return NULL;
 	if (node == this->end) return node;
 
-	// link contiguos nodes of node if it comes from a chain of nodes.
-	node_link(node->prev, node->next);
+	// link adjacents nodes of node if it comes from a chain of nodes.
+	node_linkadjacents(node);
 
-	// link node to the end
-	node_linkto(node, this->end, NULL);
+	// make node the end of the list
+	node_attach(node, this->end, NULL);
 
-	// if list is not empty
+	// the end go on level down if there is one
 	if (this->end != NULL)
 	{	
-		this->end->next = node; // the end go on level down
+		this->end->next = node; 
 	}
 
-	//  node always becomes the end
+	// node always becomes the end
 	this->end = node;
 
-	// if list is empty 
+	// node should become the beginning if there is no one
 	if (this->begin == NULL)
 	{	
-		this->begin = node; // node becomes the beginning
+		this->begin = node;
 	}
 
 	this->count++; // count one more node
@@ -66,13 +56,17 @@ Node* list_push(List* this, Node* node)
 
 List* list_select(List* list, size_t newuserdatasize, ListSelectFn fn)
 {
+	// new list for the selected data
 	List* new_list = list_new(newuserdatasize);
 
 	for (Node* node = list->begin; node != NULL; node = node->next)
 	{
+		// buffer for the selected data
 		Node* new_node = node_new(newuserdatasize);
 		list_push(new_list, new_node);
-		fn(node + 1, new_node + 1);
+
+		// buildng of the selection is done by the user's callback
+		fn(node + 1, new_node + 1); 
 	}
 
 	return new_list;
@@ -80,12 +74,15 @@ List* list_select(List* list, size_t newuserdatasize, ListSelectFn fn)
 
 List* list_filter(List* this, ListFilterFn fn)
 {
+	// new list for the desired data
 	List* new_list = list_new(this->userdatasize);
 
 	for (Node* node = this->begin; node != NULL; node = node->next)
 	{
+		// if the criteria provired by the user is true 
 		if (fn(node + 1))
 		{
+			// then the current node should be included as a copy
 			Node* new_node = node_new(this->userdatasize);
 			memcpy(new_node + 1, node + 1, this->userdatasize);
 			list_push(new_list, new_node);
