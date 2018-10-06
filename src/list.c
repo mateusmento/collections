@@ -1,4 +1,3 @@
-#define LIST_C
 #include <list.h>
 #include <colldef.h>
 #include <stdlib.h>
@@ -91,4 +90,3 @@ List* list_filter(List* this, ListFilterFn fn)
 
 	return new_list;
 }
-

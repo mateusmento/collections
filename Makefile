@@ -6,51 +6,42 @@ LIB_PATH = -Llib
 CFLAGS_COMMON = -Wall -std=c99
 CFLAGS_DEBUG =  $(CFLAGS_COMMON) -g -O0
 CFLAGS_RELEASE = $(CFLAGS_COMMON) -O2
-CFLAGS = $(CFLAGS_DEBUG) $(INC_PATH) $(LIB_PATH)
 
+CFLAGS = $(CFLAGS_DEBUG) $(INC_PATH) $(LIB_PATH)
 
 FOLDERS = obj lib bin
 
-SRC = $(wildcard src/*.c) $(wildcard src/**/*.c)
+SRC = $(wildcard src/*.c)
 OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
 LIB = -lcoll
 
+LIB_OUT = lib/libcoll.a
+
 TEST_SRC = $(wildcard test/*.c)
-TEST_OUT = $(patsubst test/%.c, bin/%.out, $(TEST_SRC))
+TEST_OUT = $(patsubst test/%.c, bin/%, $(TEST_SRC))
 
-OUT_LIB = lib/libcoll.a
 
-bin/%.out: test/%.c 	
-	$(CC) $(CFLAGS) $< -o $@ $(LIB)
+all: init test
 
-$(TEST_OUT): $(OUT_LIB)
+$(TEST_OUT): bin/%: test/%.c $(LIB_OUT)
+	$(CC) $(CFLAGS) $< $(LIB) -o $@
 
-$(OUT_LIB): $(OBJ)
-	$(AR) cr $(OUT_LIB) $(OBJ)
+$(LIB_OUT): $(OBJ)
+	$(AR) cr -o $@ $^
 
-obj/%.o: src/%.c $(FOLDERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ): obj/%.o: src/%.c include/%.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-obj:
-	mkdir obj
-lib:
-	mkdir lib
-bin:
-	mkdir bin
+$(FOLDERS): %:
+	mkdir $@
 
 
 .PHONY: init clean install all
 
 init: $(FOLDERS)
-
-install: $(OUT_LIB)
-
+install: $(LIB_OUT)
 test: $(TEST_OUT)
-
 clean:
 	rm -rf obj
-	rm -rf obj/test
 	rm -rf lib
 	rm -rf bin
-	rm -rf bin/test
-

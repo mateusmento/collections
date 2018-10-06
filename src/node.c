@@ -67,4 +67,3 @@ void node_free(Node* this)
 {
 	free(this);
 }
-

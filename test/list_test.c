@@ -122,4 +122,3 @@ int main()
 	assert(*cast(int*, node_getuserdata(beg->next)) == 4);
 	assert(beg->next->next == NULL);
 }
-
