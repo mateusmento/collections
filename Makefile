@@ -1,47 +1,54 @@
-CC = gcc
-
-INC_PATH = -Iinclude
-LIB_PATH = -Llib
-
-CFLAGS_COMMON = -Wall -std=c99
-CFLAGS_DEBUG =  $(CFLAGS_COMMON) -g -O0
-CFLAGS_RELEASE = $(CFLAGS_COMMON) -O2
-
-CFLAGS = $(CFLAGS_DEBUG) $(INC_PATH) $(LIB_PATH)
-
-FOLDERS = obj lib bin
-
-SRC = $(wildcard src/*.c)
-OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
-LIB = -lcoll
-
-LIB_OUT = lib/libcoll.a
-
-TEST_SRC = $(wildcard test/*.c)
-TEST_OUT = $(patsubst test/%.c, bin/%, $(TEST_SRC))
+MKDIR := mkdir -p
+CC := gcc
 
 
-all: init test
+INCLUDES := -Iinclude
 
-$(TEST_OUT): bin/%: test/%.c $(LIB_OUT)
-	$(CC) $(CFLAGS) $< $(LIB) -o $@
+CFLAGS_COMMON := -std=c11 $(INCLUDES)
+CFLAGS_RELEASE := -O2
+CFLAGS_DEBUG := -g -O0
+CFLAGS := $(CFLAGS_COMMON)
+CFLAGS += $(CFLAGS_DEBUG)
 
-$(LIB_OUT): $(OBJ)
-	$(AR) cr -o $@ $^
+RELEASE_PATH := build/release
+DEBUG_PATH := build/debug
+BUILD_PATH := $(DEBUG_PATH)
 
-$(OBJ): obj/%.o: src/%.c include/%.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(FOLDERS): %:
-	mkdir $@
+DEP_PATH := build/dep
+OBJ_PATH := $(BUILD_PATH)/obj
+LIB_PATH := $(BUILD_PATH)/lib
 
 
-.PHONY: init clean install all
+SRC := $(wildcard src/*.c)
+OBJ := $(patsubst src/%.c, $(OBJ_PATH)/%.o, $(SRC))
+DEP := $(patsubst src/%.c, $(DEP_PATH)/%.d, $(SRC))
 
-init: $(FOLDERS)
-install: $(LIB_OUT)
-test: $(TEST_OUT)
+TEST_SRC := $(wildcard test/*.c)
+
+OUTPUT = $(LIB_PATH)/libcoll.a
+
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJ)
+	@$(MKDIR) $(LIB_PATH)
+	$(AR) cr $@ $?
+
+$(OBJ): $(OBJ_PATH)/%.o: src/%.c
+	@$(MKDIR) $(OBJ_PATH)
+	$(COMPILE.c) $(OUTPUT_OPTIONS) -o $@ $<
+
+-include $(DEP)
+
+$(DEP): $(DEP_PATH)/%.d: src/%.c
+	@$(MKDIR) $(DEP_PATH)
+	$(CC) $(INCLUDES) -MM $< -MT "$(OBJ_PATH)/$*.o $(DEP_PATH)/$*.d" > $@
+
+
+
+.PHONY: install clean
+
+install: $(OUTPUT) 
+
 clean:
-	rm -rf obj
-	rm -rf lib
-	rm -rf bin
+	rm -rf build
