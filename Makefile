@@ -19,13 +19,13 @@ OBJ_PATH := $(BUILD_PATH)/obj
 LIB_PATH := $(BUILD_PATH)/lib
 
 
-SRC := $(wildcard src/*.c)
+SRC := $(wildcard src/*.c src/**/*.c)
 OBJ := $(patsubst src/%.c, $(OBJ_PATH)/%.o, $(SRC))
 DEP := $(patsubst src/%.c, $(DEP_PATH)/%.d, $(SRC))
 
 TEST_SRC := $(wildcard test/*.c)
 
-OUTPUT = $(LIB_PATH)/libcoll.a
+OUTPUT := $(LIB_PATH)/libcoll.a
 
 
 all: $(OUTPUT)
